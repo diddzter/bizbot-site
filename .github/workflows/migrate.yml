@@ -1,0 +1,73 @@
+name: Migrate content to WordPress
+
+# One-time (or re-run-as-needed) import: crawls the ~439 blog posts not
+# covered by the manual export, merges everything with the pre-parsed
+# tools/news/pages seed data, and pushes it all into WordPress via the
+# REST API. Manual trigger only -- this is a migration step, not a
+# recurring job. Must run in Actions (not locally in the Claude Code
+# sandbox that built this repo) because it needs real internet access to
+# both bizbot.com and the target WordPress site.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Crawl and transform, but don't push to WordPress"
+        type: boolean
+        default: false
+      crawl_limit:
+        description: "Limit how many blog posts to crawl (leave blank for all ~439, useful for a smoke test)"
+        type: string
+        default: ""
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r migration/requirements.txt
+
+      - name: Re-parse manual exports into seed JSON
+        run: python3 migration/parse_exports.py
+
+      - name: Crawl remaining blog posts from the live site
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.crawl_limit }}" ]; then
+            ARGS="--limit ${{ github.event.inputs.crawl_limit }}"
+          fi
+          python3 migration/crawl.py $ARGS
+
+      - name: Transform into the WordPress import payload
+        run: python3 migration/transform.py
+
+      - name: Generate redirect map
+        run: python3 migration/redirects.py
+
+      - name: Push to WordPress
+        if: github.event.inputs.dry_run != 'true'
+        env:
+          WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
+          WP_APP_USER: ${{ secrets.WP_APP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+        run: python3 migration/push_to_wp.py
+
+      - name: Dry-run summary (no push)
+        if: github.event.inputs.dry_run == 'true'
+        run: python3 migration/push_to_wp.py --dry-run
+
+      - name: Upload migration data as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-data
+          path: |
+            data/blog_posts_crawled.json
+            data/wp_import_payload.json
+            data/redirects.csv
+          retention-days: 30

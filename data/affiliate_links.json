@@ -1,0 +1,10 @@
+{
+  "_comment": "Tool name (case-insensitive, matched as a whole word/phrase) -> tracked affiliate URL to use whenever that tool is mentioned in a post/page. Add new deals here; automation/affiliate_link_sweep.py reads this file to find and insert/verify links across the site. Keep in sync with the 'outbound_link' field on the matching entry in data/tools_seed.json when the tool also has its own directory listing.",
+  "links": {
+    "Unicorn Platform": "https://unicornplatform.com/?via=didrik75",
+    "SEOBot": "https://seobotai.com/?aff=didrik",
+    "Quicklead": "https://quicklead.io?ref=diddemartens71",
+    "SearchAtlas": "https://searchatlas.com/?fpr=didrik12",
+    "ClearCRM": "https://clearcrm.com/?ref=didrik52"
+  }
+}

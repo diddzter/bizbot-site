@@ -1,0 +1,43 @@
+name: Deploy theme to Hostinger
+
+# Pushes theme/ -> wp-content/themes/bizbot-site/ and mu-plugins/ ->
+# wp-content/mu-plugins/ over SFTP whenever either changes on main. Uses
+# password-based SFTP since that's what's universally available on
+# Hostinger shared hosting (no assumption of SSH-key or Git-deploy
+# support). See README.md for how to find these credentials in hPanel.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "theme/**"
+      - "mu-plugins/**"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy theme
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.HOSTINGER_SFTP_HOST }}
+          username: ${{ secrets.HOSTINGER_SFTP_USER }}
+          password: ${{ secrets.HOSTINGER_SFTP_PASSWORD }}
+          port: ${{ secrets.HOSTINGER_SFTP_PORT }}
+          protocol: sftp
+          local-dir: theme/
+          server-dir: ${{ vars.HOSTINGER_THEME_REMOTE_PATH }}/
+
+      - name: Deploy mu-plugins
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.HOSTINGER_SFTP_HOST }}
+          username: ${{ secrets.HOSTINGER_SFTP_USER }}
+          password: ${{ secrets.HOSTINGER_SFTP_PASSWORD }}
+          port: ${{ secrets.HOSTINGER_SFTP_PORT }}
+          protocol: sftp
+          local-dir: mu-plugins/
+          server-dir: ${{ vars.HOSTINGER_MU_PLUGINS_REMOTE_PATH }}/

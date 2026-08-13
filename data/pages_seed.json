@@ -1,0 +1,60 @@
+{
+  "home": {
+    "url": "https://www.bizbot.com/",
+    "hero_h1": "Welcome to BizBot",
+    "hero_subhead": "Your comprehensive directory for the best business admin tools for your tech company",
+    "hero_cta": "Explore Now",
+    "why_choose_heading": "Why Choose Our Directory? Find the Best Admin Tools for Your Business",
+    "why_choose_body": "We have carefully curated a comprehensive list of the best admin tools for companies, saving you valuable time and effort in finding the right tools to streamline your business operations and boost productivity.",
+    "about_heading": "About Us - The Most Important Things to Know",
+    "about_body": "Welcome to BizBot, your comprehensive directory for the best business admin tools. We are a team of dedicated professionals committed to providing you with the best admin tools for your business. Our platform is designed to streamline your business operations by offering a one-stop directory for all your admin tool needs. Stay updated with the latest tools and trends, and even suggest a tool for review. Ready to streamline your business? Start exploring our directory now!",
+    "team": [
+      {
+        "name": "John Rush",
+        "role": "Tech Maker",
+        "bio": "Serial startup founder. Leading 20+ products."
+      },
+      {
+        "name": "Didrik Martens",
+        "role": "Business Maker",
+        "bio": "Serial startup founder looking for help from other entrepreneurs from my projects. Read more about me on my blog https://www.eggemartens.com/"
+      }
+    ],
+    "newsletter_heading": "Stay Updated",
+    "newsletter_body": "Subscribe to our newsletter for the latest updates and trends in admin tools."
+  },
+  "guest-post-pricing": {
+    "url": "https://www.bizbot.com/guest-post-pricing/",
+    "heading": "Guest Post Pricing",
+    "subhead": "Boost your online presence with high-quality guest posts.",
+    "quote": "Backlinks remain one of the most important factors for SEO success, helping websites improve visibility and authority. – Moz",
+    "tiers": [
+      {
+        "plan": "Basic",
+        "articles": 6,
+        "price": "$150/year",
+        "backlinks": 2
+      },
+      {
+        "plan": "Standard",
+        "articles": 16,
+        "price": "$250/year",
+        "backlinks": 2
+      },
+      {
+        "plan": "Premium",
+        "articles": 25,
+        "price": "$350/year",
+        "backlinks": 2
+      }
+    ],
+    "terms": "Link insertions are offered at the same price. Pricing is based on client-provided articles. If we prepare the content, an additional $25 per article applies. After one year of publishing your article, we can add additional links to that article.",
+    "network": [
+      "https://www.bizbot.com/",
+      "https://www.sales-leads-crm.com/",
+      "https://www.content-and-marketing.com/",
+      "https://work-smart-not-hard.tech/"
+    ],
+    "contact_email": "didrik@bizbot.no"
+  }
+}
