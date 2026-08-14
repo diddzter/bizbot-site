@@ -98,7 +98,11 @@ def build_news() -> list[dict]:
             "slug": slug,
             "title": c["title"] or by_slug.get(slug, {}).get("title", ""),
             "content_html": strip_cruft(c["content_html"]),
-            "date": by_slug.get(slug, {}).get("date"),  # crawl.py doesn't extract a date; keep the manual-export one if we had it
+            # crawl.py extracts datePublished from the page's JSON-LD, which
+            # is more precise than the manual export's human-typed date --
+            # prefer it, but fall back to the manual-export date if the
+            # crawl didn't find one.
+            "date": c.get("date") or by_slug.get(slug, {}).get("date"),
             "source": "crawled",
             "source_url": c["url"],
         }
@@ -121,6 +125,7 @@ def build_posts() -> list[dict]:
             "title": p["title"],
             "content_html": strip_cruft(md.markdown(body.strip(), extensions=["tables", "fenced_code"])),
             "meta_description": None,
+            "date": None,  # the manual export doesn't capture a machine-readable date
             "needs_manual_review": False,
             "review_note": None,
             "source": "manual_export",
@@ -137,6 +142,8 @@ def build_posts() -> list[dict]:
             "title": c["title"] or by_slug.get(slug, {}).get("title", ""),
             "content_html": strip_cruft(c["content_html"]),
             "meta_description": c.get("meta_description") or None,
+            # crawl.py extracts datePublished from the page's JSON-LD.
+            "date": c.get("date"),
             "needs_manual_review": c.get("needs_manual_review", False),
             "review_note": c.get("review_note"),
             "source": "crawled",
