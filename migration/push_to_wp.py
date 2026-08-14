@@ -34,6 +34,7 @@ import json
 import mimetypes
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -212,6 +213,35 @@ def migrate_images(session: requests.Session, html: str, source_url: str) -> str
     return str(soup) if changed else html
 
 
+def _to_wp_date_gmt(date_str: str | None) -> str | None:
+    """Normalize a date captured during migration into the "Y-m-dTH:i:s"
+    (UTC, no offset) format the WordPress REST API expects for date_gmt.
+
+    Accepts either an ISO 8601 timestamp (from crawl.py's JSON-LD
+    extraction, e.g. "2025-12-24T02:05:12.356000+00:00") or the
+    human-typed "Month D, YYYY" format used in the manual news export
+    (e.g. "February 19, 2026"). Returns None if `date_str` is missing or
+    doesn't match either format, so callers can just omit date_gmt and let
+    WordPress fall back to its own default (the time of the API call).
+    """
+    if not date_str:
+        return None
+
+    try:
+        dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt.strftime("%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        pass
+
+    try:
+        dt = datetime.strptime(date_str.strip(), "%B %d, %Y")
+        return dt.strftime("%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        return None
+
+
 def push_tools(session: requests.Session, tools: list[dict]) -> None:
     for t in tools:
         category_ids = [_get_or_create_term(session, "tool_category", c) for c in t["categories"]]
@@ -241,6 +271,9 @@ def push_news(session: requests.Session, news: list[dict]) -> None:
             "content": content_html,
             "status": "publish",
         }
+        date_gmt = _to_wp_date_gmt(n.get("date"))
+        if date_gmt:
+            body["date_gmt"] = date_gmt
         result = _upsert(session, "bb_news", n["slug"], body)
         print(f"  news: {n['title']} -> id {result['id']}")
 
@@ -256,6 +289,9 @@ def push_posts(session: requests.Session, posts: list[dict]) -> None:
         }
         if p.get("meta_description"):
             body["meta"] = {"_yoast_wpseo_metadesc": p["meta_description"]}
+        date_gmt = _to_wp_date_gmt(p.get("date"))
+        if date_gmt:
+            body["date_gmt"] = date_gmt
         result = _upsert(session, "posts", p["slug"], body)
         flag = " [NEEDS MANUAL REVIEW]" if p["needs_manual_review"] else ""
         print(f"  post: {p['title']} -> id {result['id']}{flag}")
