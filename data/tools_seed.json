@@ -672,9 +672,9 @@
     "categories": [
       "Booking"
     ],
-    "description": "",
-    "needs_manual_review": true,
-    "review_note": "NOTE - fetch returned a bot-verification/security-check page (\"Users verify human identity for secure connection access.\") instead of the actual product description after 3 attempts. Needs manual re-check."
+    "description": "Bookafy is an online appointment scheduling platform that automates booking, payments, and reminders for businesses. It integrates with Google, Outlook, and other calendar tools, and offers features like skill-based routing and automated customer communications for industries ranging from medical and financial services to education and fitness.",
+    "needs_manual_review": false,
+    "review_note": null
   },
   {
     "name": "Harvest",
