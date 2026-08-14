@@ -515,7 +515,7 @@ Page URL: https://www.bizbot.com/tools/bookafy/
 Outbound link: https://www.bookafy.com
 Category: Booking
 
-Description: NOTE - fetch returned a bot-verification/security-check page ("Users verify human identity for secure connection access.") instead of the actual product description after 3 attempts. Needs manual re-check.
+Description: Bookafy is an online appointment scheduling platform that automates booking, payments, and reminders for businesses. It integrates with Google, Outlook, and other calendar tools, and offers features like skill-based routing and automated customer communications for industries ranging from medical and financial services to education and fitness.
 
 ---
 
