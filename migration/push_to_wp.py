@@ -94,6 +94,22 @@ def _get_or_create_term(session: requests.Session, taxonomy: str, name: str) -> 
             return term["id"]
 
     resp = session.post(f"{WP_BASE_URL}/wp-json/wp/v2/{taxonomy}", json={"name": name}, timeout=20)
+    if resp.status_code == 400:
+        # WordPress returns 400 "term_exists" (with the existing term's id
+        # in the error body) when a term with this name already exists but
+        # the plain-text search above didn't surface it -- e.g. because WP
+        # stored the name with HTML entities encoded (some special
+        # characters, like "&", get escaped on save but the REST search
+        # endpoint doesn't always match against the escaped form). Recover
+        # the id from the error response instead of failing the migration.
+        try:
+            err = resp.json()
+        except ValueError:
+            err = {}
+        existing_id = (err.get("data") or {}).get("term_id") if isinstance(err.get("data"), dict) else None
+        if err.get("code") == "term_exists" and existing_id:
+            _term_cache[key] = existing_id
+            return existing_id
     resp.raise_for_status()
     term_id = resp.json()["id"]
     _term_cache[key] = term_id
