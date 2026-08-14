@@ -4,11 +4,15 @@ site (in source_exports/) into structured JSON seed data under ../data/.
 These exports were pulled by hand before this repo existed, since this
 environment has no outbound internet access to bizbot.com. They cover:
   - all 98 tool directory pages (full content)
-  - all 6 news posts (full content)
+  - all 6 news posts (full content, text only -- no images)
   - the home + guest-post-pricing page copy
-  - 73 of the 512 blog posts (full content) -- the rest are left for
-    migration/crawl.py to fetch live, since only ~1 in 7 blog posts made it
-    into the manual export.
+  - 73 of the 512 blog posts (full content, text only -- no images)
+
+None of the hand-exported text has images, so this script also writes out
+the full list of blog and news URLs (blog_urls_to_crawl.json,
+news_urls_to_crawl.json) for migration/crawl.py to fetch live -- including
+the ones already covered above -- since transform.py always prefers the
+live-crawled version when one exists.
 
 Run with: python3 migration/parse_exports.py
 Idempotent -- safe to re-run any time the source_exports/ files change.
@@ -126,8 +130,14 @@ def main() -> None:
     by_section = parse_all_urls()
 
     all_blog_urls = [u for u in by_section.get("blog", []) if u.rstrip("/") != "https://www.bizbot.com/blog"]
-    seeded_urls = {p["url"] for p in blog_seed}
-    still_to_crawl = [u for u in all_blog_urls if u not in seeded_urls]
+    # Crawl every blog post live, even the ones already covered by the
+    # manual export -- that export is hand-typed markdown with no images,
+    # and migration/transform.py prefers this live-crawled version (which
+    # does capture images) over the manual-export version whenever both
+    # exist for the same URL.
+    still_to_crawl = list(all_blog_urls)
+
+    all_news_urls = [u for u in by_section.get("news", []) if u.rstrip("/") != "https://www.bizbot.com/news"]
 
     pages_seed = {
         "home": {
@@ -198,12 +208,14 @@ def main() -> None:
     (DATA / "blog_posts_seed.json").write_text(json.dumps(blog_seed, indent=2, ensure_ascii=False), encoding="utf-8")
     (DATA / "blog_urls_to_crawl.json").write_text(json.dumps(sorted(still_to_crawl), indent=2), encoding="utf-8")
     (DATA / "news_seed.json").write_text(json.dumps(news, indent=2, ensure_ascii=False), encoding="utf-8")
+    (DATA / "news_urls_to_crawl.json").write_text(json.dumps(sorted(all_news_urls), indent=2), encoding="utf-8")
     (DATA / "tools_seed.json").write_text(json.dumps(tools, indent=2, ensure_ascii=False), encoding="utf-8")
     (DATA / "pages_seed.json").write_text(json.dumps(pages_seed, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"blog_posts_seed.json: {len(blog_seed)} full posts")
-    print(f"blog_urls_to_crawl.json: {len(still_to_crawl)} posts left for crawl.py")
+    print(f"blog_posts_seed.json: {len(blog_seed)} full posts (text fallback only -- crawl.py re-fetches all of these live for images)")
+    print(f"blog_urls_to_crawl.json: {len(still_to_crawl)} posts for crawl.py to fetch live")
     print(f"news_seed.json: {len(news)} posts")
+    print(f"news_urls_to_crawl.json: {len(all_news_urls)} posts for crawl.py to fetch live")
     print(f"tools_seed.json: {len(tools)} tools ({sum(1 for t in tools if t['needs_manual_review'])} flagged for manual review)")
 
 
