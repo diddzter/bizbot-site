@@ -80,8 +80,26 @@ def fetch(session: requests.Session, url: str) -> requests.Response | None:
     return None
 
 
+def _extract_published_date(soup: BeautifulSoup) -> str | None:
+    """Look for a datePublished value in a JSON-LD BlogPosting/NewsArticle
+    block -- the only reliable publish-date signal on these pages (there's
+    no <meta property="article:published_time"> or <time> element)."""
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            data = json.loads(script.string or "")
+        except (TypeError, ValueError):
+            continue
+        candidates = data if isinstance(data, list) else [data]
+        for entry in candidates:
+            if isinstance(entry, dict) and entry.get("datePublished"):
+                return entry["datePublished"]
+    return None
+
+
 def extract(url: str, html: str) -> dict:
     soup = BeautifulSoup(html, "html.parser")
+
+    published_date = _extract_published_date(soup)
 
     title_tag = soup.find("meta", property="og:title") or soup.find("title")
     if title_tag and title_tag.name == "meta":
@@ -113,6 +131,7 @@ def extract(url: str, html: str) -> dict:
         "title": title,
         "meta_description": meta_description,
         "content_html": content_html,
+        "date": published_date,
         "needs_manual_review": looks_like_bot_check or not content_html.strip(),
         "review_note": "possible bot-check/interstitial page" if looks_like_bot_check else None,
     }
@@ -126,6 +145,7 @@ def crawl_one(session: requests.Session, url: str) -> dict:
             "title": "",
             "meta_description": "",
             "content_html": "",
+            "date": None,
             "needs_manual_review": True,
             "review_note": "fetch failed after retries",
         }
